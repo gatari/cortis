@@ -8,35 +8,40 @@ namespace Cortis.Tests.EditMode
     /// VContainer ライフサイクル順序のシミュレーションテスト。
     /// Constructor → [Inject] InjectBindings → Initialize の順序で
     /// Binder の購読が Initialize 前に完了していることを検証する。
+    /// Event 送信はユーザーコードが OnInitialize で _events → SendEvent パイプラインを繋ぐ。
     /// </summary>
     public class LifecycleTests
     {
         /// <summary>
         /// 生成コードが作る Handler を模したテスト用クラス。
         /// VContainer のライフサイクルを手動でシミュレートする。
+        /// Event 自動 Subscribe はなくなり、ユーザーが OnInitialize でパイプラインを繋ぐ。
         /// </summary>
-        sealed class FakeHandler : ICommandHandler<StringValue>, IEventSource<Int32Value>
+        sealed class FakeHandler : ICommandHandler<StringValue>
         {
             readonly Subject<Int32Value> _events = new();
             Binder _binder;
+            IMessageGateway _gateway;
 
             public int HandleCount { get; private set; }
 
             // ICommandHandler
             public void Handle(StringValue command) => HandleCount++;
 
-            // IEventSource
-            public Observable<Int32Value> Events => _events;
-
             // 生成コードの [Inject] void InjectBindings(IMessageGateway) に相当
             public void InjectBindings(IMessageGateway gateway)
             {
-                _binder = MessageBinding.Bind<StringValue, Int32Value>(this, this, gateway);
+                _gateway = gateway;
+                _binder = MessageBinding.Bind<StringValue>(this, gateway);
             }
 
             // 生成コードの Initialize() → OnInitialize() に相当
             public void Initialize()
             {
+                // OnInitialize: ユーザーがパイプラインを繋ぐ
+                if (_gateway != null)
+                    _events.Subscribe(evt => _gateway.Send(Any.Pack(evt)));
+
                 // OnInitialize 内でイベントを発行する典型パターン
                 _events.OnNext(new Int32Value { Value = 42 });
             }

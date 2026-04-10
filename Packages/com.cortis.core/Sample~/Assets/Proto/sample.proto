@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package cortis.sample;
+
+// Command+Event パターン: Cube の操作と状態通知
+message Cube {
+  message Command {
+    message SetScale { float x = 1; float y = 2; float z = 3; }
+    message Reset {}
+    oneof command {
+      SetScale set_scale = 1;
+      Reset reset = 2;
+    }
+  }
+  message Event {
+    message ScaleChanged { float x = 1; float y = 2; float z = 3; }
+    oneof event {
+      ScaleChanged scale_changed = 1;
+    }
+  }
+}
+
+// Event-only パターン: センサーからの通知のみ
+message Sensor {
+  message Event {
+    message PositionUpdated { float x = 1; float y = 2; float z = 3; }
+    message StatusChanged { int32 status = 1; }
+    oneof event {
+      PositionUpdated position_updated = 1;
+      StatusChanged status_changed = 2;
+    }
+  }
+}
+
+// ルーティング用: Player の Command/Event が App に包まれる
+message Player {
+  message Command {
+    message Attack { int32 damage = 1; }
+    message Defend { int32 shield = 1; }
+    oneof command {
+      Attack attack = 1;
+      Defend defend = 2;
+    }
+  }
+  message Event {
+    message HealthChanged { int32 hp = 1; }
+    oneof event {
+      HealthChanged health_changed = 1;
+    }
+  }
+}
+
+// Root wrapper: ルーティング用（Player のみ包む）
+message App {
+  message Command {
+    oneof command {
+      Player.Command player = 1;
+    }
+  }
+  message Event {
+    oneof event {
+      Player.Event player = 1;
+    }
+  }
+}

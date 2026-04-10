@@ -29,23 +29,6 @@ namespace Cortis.Tests.EditMode
     }
 
     /// <summary>
-    /// テストからイベントを供給するソース。
-    /// </summary>
-    sealed class TestEventSource<T> : IEventSource<T>
-        where T : IMessage<T>
-    {
-        readonly Subject<T> _subject = new();
-        public Observable<T> Events => _subject;
-        public void Emit(T value) => _subject.OnNext(value);
-
-        public void Dispose()
-        {
-            _subject.OnCompleted();
-            _subject.Dispose();
-        }
-    }
-
-    /// <summary>
     /// テスト用の IMessageGateway 実装。
     /// Any メッセージの送受信をインメモリで完結させる。
     /// Send されたメッセージは protobuf シリアライズ→デシリアライズを経て Messages に流れる。

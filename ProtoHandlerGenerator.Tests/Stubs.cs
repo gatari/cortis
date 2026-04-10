@@ -27,7 +27,6 @@ namespace Cortis
     }
 
     public interface ICommandHandler<T> { void Handle(T command); }
-    public interface IEventSource<T> { R3.Observable<T> Events { get; } }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     public sealed class ProtoRouteAttribute : Attribute
