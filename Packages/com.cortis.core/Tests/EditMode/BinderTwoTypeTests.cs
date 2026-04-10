@@ -5,15 +5,14 @@ using NUnit.Framework;
 namespace Cortis.Tests.EditMode
 {
     /// <summary>
-    /// MessageBinding.Bind&lt;TCommand, TEvent&gt; の統合テスト。
-    /// コマンドに StringValue、イベントに Int32Value を使い分けて検証する。
-    /// TestGateway により、イベントの protobuf 往復も確認する。
+    /// MessageBinding.Bind&lt;TCommand&gt; のテスト。
+    /// Event 自動 Subscribe はなくなったため、Command のみをバインドする。
+    /// ユーザーコードがイベント送信を行うパターンを検証する。
     /// </summary>
     public class BinderTwoTypeTests
     {
         TestGateway _gateway;
         RecordingHandler<StringValue> _commandHandler;
-        TestEventSource<Int32Value> _eventSource;
         RecordingHandler<Int32Value> _eventLoopbackHandler;
         Binder _binder;
         Binder _eventCatcher;
@@ -23,14 +22,14 @@ namespace Cortis.Tests.EditMode
         {
             _gateway = new TestGateway();
             _commandHandler = new RecordingHandler<StringValue>();
-            _eventSource = new TestEventSource<Int32Value>();
             _eventLoopbackHandler = new RecordingHandler<Int32Value>();
 
             // ループバックされたイベントを受信する Binder
             _eventCatcher = MessageBinding.Bind<Int32Value>(_eventLoopbackHandler, _gateway);
 
-            _binder = MessageBinding.Bind<StringValue, Int32Value>(
-                _commandHandler, _eventSource, _gateway);
+            // Command のみバインド（Event 自動 Subscribe はなし）
+            _binder = MessageBinding.Bind<StringValue>(
+                _commandHandler, _gateway);
         }
 
         [TearDown]
@@ -38,7 +37,6 @@ namespace Cortis.Tests.EditMode
         {
             _binder.Dispose();
             _eventCatcher.Dispose();
-            _eventSource.Dispose();
             _gateway.Dispose();
         }
 
@@ -52,24 +50,22 @@ namespace Cortis.Tests.EditMode
         }
 
         [Test]
-        public void イベントがループバックで受信できる()
+        public void ユーザーコードがgateway経由でイベントを送信するとループバックで受信できる()
         {
-            _eventSource.Emit(new Int32Value { Value = 42 });
+            _gateway.Send(Any.Pack(new Int32Value { Value = 42 }));
 
             Assert.AreEqual(1, _eventLoopbackHandler.Received.Count);
             Assert.AreEqual(42, _eventLoopbackHandler.Received[0].Value);
         }
 
         [Test]
-        public void Dispose後_コマンドもイベントも処理されない()
+        public void Dispose後_コマンドは処理されない()
         {
             _binder.Dispose();
 
             _gateway.SimulateReceive(Any.Pack(new StringValue { Value = "after" }));
-            _eventSource.Emit(new Int32Value { Value = 99 });
 
             Assert.AreEqual(0, _commandHandler.Received.Count);
-            Assert.AreEqual(0, _eventLoopbackHandler.Received.Count);
         }
 
         [Test]

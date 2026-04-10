@@ -1,83 +1,54 @@
-using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NUnit.Framework;
+using R3;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Cortis.Tests.EditMode
 {
     /// <summary>
-    /// MessageBinding イベント側の統合テスト。
-    /// TestGateway を使い、イベント → Pack → Send → Parse → Unpack
-    /// という protobuf 往復を検証する。
+    /// Event 送信テスト。
+    /// Event 自動 Subscribe はなくなったため、ユーザーコードが
+    /// gateway.Send(Any.Pack(evt)) を呼ぶパターンをテストする。
     /// </summary>
     public class BinderEventTests
     {
         TestGateway _gateway;
-        TestEventSource<StringValue> _eventSource;
         RecordingHandler<StringValue> _loopbackHandler;
-        Binder _eventBinder;
         Binder _loopbackReceiver;
 
         [SetUp]
         public void SetUp()
         {
             _gateway = new TestGateway();
-            _eventSource = new TestEventSource<StringValue>();
             _loopbackHandler = new RecordingHandler<StringValue>();
 
-            // ループバック受信側を先にセットアップ
+            // ループバック受信側をセットアップ
             _loopbackReceiver = MessageBinding.Bind<StringValue>(_loopbackHandler, _gateway);
-            _eventBinder = MessageBinding.Bind<StringValue>(_eventSource, _gateway);
         }
 
         [TearDown]
         public void TearDown()
         {
-            _eventBinder.Dispose();
             _loopbackReceiver.Dispose();
-            _eventSource.Dispose();
             _gateway.Dispose();
         }
 
         [Test]
-        public void イベントがprotobufシリアライズを経てループバックで受信できる()
+        public void gateway経由でイベントを送信するとprotobufシリアライズを経てループバックで受信できる()
         {
-            _eventSource.Emit(new StringValue { Value = "hello" });
+            _gateway.Send(Any.Pack(new StringValue { Value = "hello" }));
 
             Assert.AreEqual(1, _loopbackHandler.Received.Count);
             Assert.AreEqual("hello", _loopbackHandler.Received[0].Value);
         }
 
         [Test]
-        public void 同じイベントが連続した場合_DistinctUntilChangedで1回のみ到達する()
-        {
-            var same = new StringValue { Value = "same" };
-
-            _eventSource.Emit(same);
-            _eventSource.Emit(same);
-            _eventSource.Emit(same);
-
-            Assert.AreEqual(1, _loopbackHandler.Received.Count);
-        }
-
-        [Test]
-        public void 同じ値の別インスタンスが連続した場合_DistinctUntilChangedで1回のみ到達する()
-        {
-            _eventSource.Emit(new StringValue { Value = "same" });
-            _eventSource.Emit(new StringValue { Value = "same" });
-            _eventSource.Emit(new StringValue { Value = "same" });
-
-            Assert.AreEqual(1, _loopbackHandler.Received.Count);
-        }
-
-        [Test]
         public void 異なるイベントが連続した場合_それぞれ到達する()
         {
-            _eventSource.Emit(new StringValue { Value = "a" });
-            _eventSource.Emit(new StringValue { Value = "b" });
-            _eventSource.Emit(new StringValue { Value = "a" });
+            _gateway.Send(Any.Pack(new StringValue { Value = "a" }));
+            _gateway.Send(Any.Pack(new StringValue { Value = "b" }));
+            _gateway.Send(Any.Pack(new StringValue { Value = "a" }));
 
             Assert.AreEqual(3, _loopbackHandler.Received.Count);
             Assert.AreEqual("a", _loopbackHandler.Received[0].Value);
@@ -86,29 +57,52 @@ namespace Cortis.Tests.EditMode
         }
 
         [Test]
-        public void Sendが例外を投げてもストリームが生存する()
+        public void Dispose後_イベントが発行されてもループバックされない()
         {
-            _gateway.SimulateError = true;
+            _loopbackReceiver.Dispose();
 
-            LogAssert.Expect(LogType.Error, new Regex(@"\[MessageBinding<StringValue>\] Event error"));
-            _eventSource.Emit(new StringValue { Value = "boom" });
+            _gateway.Send(Any.Pack(new StringValue { Value = "after dispose" }));
+
             Assert.AreEqual(0, _loopbackHandler.Received.Count);
-
-            _gateway.SimulateError = false;
-
-            _eventSource.Emit(new StringValue { Value = "ok" });
-            Assert.AreEqual(1, _loopbackHandler.Received.Count);
-            Assert.AreEqual("ok", _loopbackHandler.Received[0].Value);
         }
 
         [Test]
-        public void Dispose後_イベントが発行されてもループバックされない()
+        public void DistinctUntilChanged付きパイプラインで同じイベントを連続送信した場合_1回のみ到達する()
         {
-            _eventBinder.Dispose();
+            var subject = new Subject<StringValue>();
+            subject
+                .DistinctUntilChanged()
+                .Subscribe(evt => _gateway.Send(Any.Pack(evt)));
 
-            _eventSource.Emit(new StringValue { Value = "after dispose" });
+            var same = new StringValue { Value = "dup" };
+            subject.OnNext(same);
+            subject.OnNext(same);
+            subject.OnNext(same);
 
-            Assert.AreEqual(0, _loopbackHandler.Received.Count);
+            Assert.AreEqual(1, _loopbackHandler.Received.Count);
+            Assert.AreEqual("dup", _loopbackHandler.Received[0].Value);
+
+            subject.Dispose();
+        }
+
+        [Test]
+        public void DistinctUntilChangedなしで同じイベントを連続送信した場合_全て到達する()
+        {
+            var subject = new Subject<StringValue>();
+            subject
+                .Subscribe(evt => _gateway.Send(Any.Pack(evt)));
+
+            var same = new StringValue { Value = "dup" };
+            subject.OnNext(same);
+            subject.OnNext(same);
+            subject.OnNext(same);
+
+            Assert.AreEqual(3, _loopbackHandler.Received.Count);
+            Assert.AreEqual("dup", _loopbackHandler.Received[0].Value);
+            Assert.AreEqual("dup", _loopbackHandler.Received[1].Value);
+            Assert.AreEqual("dup", _loopbackHandler.Received[2].Value);
+
+            subject.Dispose();
         }
     }
 }

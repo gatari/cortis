@@ -130,8 +130,6 @@ namespace ProtoHandlerGen
             var interfaces = new System.Collections.Generic.List<string>();
             if (!isEventOnly)
                 interfaces.Add($"ICommandHandler<{model.CommandTypeFullName}>");
-            if (!isCommandOnly)
-                interfaces.Add($"IEventSource<{model.EventTypeFullName}>");
             interfaces.Add("IInitializable");
             interfaces.Add("IDisposable");
             sb.Append($" : {string.Join(", ", interfaces)}");
@@ -143,36 +141,31 @@ namespace ProtoHandlerGen
             var i3 = indent + "        ";
 
             // Fields
-            sb.AppendLine($"{i2}Binder _binder;");
-            if (!isCommandOnly)
+            if (!isEventOnly)
             {
-                sb.AppendLine($"{i2}readonly Subject<{model.EventTypeFullName}> _events = new();");
+                sb.AppendLine($"{i2}Binder _binder;");
             }
+            sb.AppendLine($"{i2}IMessageGateway _gateway;");
             sb.AppendLine();
 
-            // Method injection: bind command/event subscriptions
+            // Method injection: bind command subscriptions
             var hasCommandRoute = !model.CommandRoute.IsDefaultOrEmpty;
             var hasEventRoute = !model.EventRoute.IsDefaultOrEmpty;
-            var hasAnyRoute = hasCommandRoute || hasEventRoute;
 
             sb.AppendLine($"{i2}[Inject]");
             sb.AppendLine($"{i2}void InjectBindings(IMessageGateway gateway)");
             sb.AppendLine($"{i2}{{");
-            if (hasAnyRoute)
+            sb.AppendLine($"{i3}_gateway = gateway;");
+            if (!isEventOnly)
             {
-                EmitRoutedBinding(sb, i3, model, isEventOnly, isCommandOnly, hasCommandRoute, hasEventRoute);
-            }
-            else if (isEventOnly)
-            {
-                sb.AppendLine($"{i3}_binder = MessageBinding.Bind<{model.EventTypeFullName}>(this, gateway);");
-            }
-            else if (!isCommandOnly)
-            {
-                sb.AppendLine($"{i3}_binder = MessageBinding.Bind<{model.CommandTypeFullName}, {model.EventTypeFullName}>(this, this, gateway);");
-            }
-            else
-            {
-                sb.AppendLine($"{i3}_binder = MessageBinding.Bind<{model.CommandTypeFullName}>(this, gateway);");
+                if (hasCommandRoute)
+                {
+                    EmitRoutedBinding(sb, i3, model);
+                }
+                else
+                {
+                    sb.AppendLine($"{i3}_binder = MessageBinding.Bind<{model.CommandTypeFullName}>(this, gateway);");
+                }
             }
             sb.AppendLine($"{i2}}}");
             sb.AppendLine();
@@ -200,13 +193,6 @@ namespace ProtoHandlerGen
                 sb.AppendLine();
             }
 
-            // IEventSource.Events
-            if (!isCommandOnly)
-            {
-                sb.AppendLine($"{i2}Observable<{model.EventTypeFullName}> IEventSource<{model.EventTypeFullName}>.Events => _events;");
-                sb.AppendLine();
-            }
-
             // Initialize
             sb.AppendLine($"{i2}public void Initialize()");
             sb.AppendLine($"{i2}{{");
@@ -216,38 +202,19 @@ namespace ProtoHandlerGen
             sb.AppendLine($"{i2}private partial void OnInitialize();");
             sb.AppendLine();
 
-            // DispatchEvent overloads (not generated for command-only)
-            if (!isCommandOnly && model.EventCases.IsEmpty)
+            // SendEvent (generated when event type exists)
+            if (!isCommandOnly)
             {
-                // Non-oneof event type: single pass-through DispatchEvent
-                var dispatchAccess = model.IsSealed ? "void" : "protected void";
-                sb.AppendLine($"{i2}{dispatchAccess} DispatchEvent({model.EventTypeFullName} value)");
-                sb.AppendLine($"{i2}{{");
-                sb.AppendLine($"{i3}_events.OnNext(value);");
-                sb.AppendLine($"{i2}}}");
+                EmitSendEvent(sb, i2, model, hasEventRoute);
                 sb.AppendLine();
-            }
-            else if (!isCommandOnly)
-            {
-                // Oneof event type: one DispatchEvent per case
-                foreach (var eventCase in model.EventCases)
-                {
-                    var dispatchAccess = model.IsSealed ? "void" : "protected void";
-                    sb.AppendLine($"{i2}{dispatchAccess} DispatchEvent({eventCase.CaseTypeFullName} value)");
-                    sb.AppendLine($"{i2}{{");
-                    sb.AppendLine($"{i3}_events.OnNext(new {model.EventTypeFullName} {{ {eventCase.CaseName} = value }});");
-                    sb.AppendLine($"{i2}}}");
-                    sb.AppendLine();
-                }
             }
 
             // Dispose
             sb.AppendLine($"{i2}public void Dispose()");
             sb.AppendLine($"{i2}{{");
-            sb.AppendLine($"{i3}_binder?.Dispose();");
-            if (!isCommandOnly)
+            if (!isEventOnly)
             {
-                sb.AppendLine($"{i3}_events.Dispose();");
+                sb.AppendLine($"{i3}_binder?.Dispose();");
             }
             sb.AppendLine($"{i3}OnDispose();");
             sb.AppendLine($"{i2}}}");
@@ -263,10 +230,6 @@ namespace ProtoHandlerGen
             if (!isEventOnly)
             {
                 sb.AppendLine($"{i3}    .As<ICommandHandler<{model.CommandTypeFullName}>>()");
-            }
-            if (!isCommandOnly)
-            {
-                sb.AppendLine($"{i3}    .As<IEventSource<{model.EventTypeFullName}>>()");
             }
             sb.AppendLine($"{i3}    .As<IInitializable>()");
             sb.AppendLine($"{i3}    .As<IDisposable>();");
@@ -286,44 +249,51 @@ namespace ProtoHandlerGen
         static void EmitRoutedBinding(
             StringBuilder sb,
             string indent,
-            PresenterModel model,
-            bool isEventOnly,
-            bool isCommandOnly,
-            bool hasCommandRoute,
-            bool hasEventRoute)
+            PresenterModel model)
         {
             var i4 = indent + "    ";
 
-            if (isEventOnly)
+            var rootCmdType = model.CommandRoute[0].ParentTypeFullName;
+            sb.AppendLine($"{indent}_binder = MessageBinding.BindRouted<{rootCmdType}, {model.CommandTypeFullName}>(this, gateway,");
+            EmitUnwrapLambda(sb, i4, model.CommandRoute);
+            sb.AppendLine(");");
+        }
+
+        /// <summary>
+        /// SendEvent メソッドを生成する。
+        /// ルーティングなし: _gateway.Send(Google.Protobuf.WellKnownTypes.Any.Pack(evt))
+        /// ルーティングあり: inner → root にラップしてから送信
+        /// </summary>
+        static void EmitSendEvent(
+            StringBuilder sb,
+            string indent,
+            PresenterModel model,
+            bool hasEventRoute)
+        {
+            var i3 = indent + "    ";
+            if (!hasEventRoute)
             {
-                var rootEvtType = model.EventRoute[0].ParentTypeFullName;
-                sb.AppendLine($"{indent}_binder = MessageBinding.BindRouted<{rootEvtType}, {model.EventTypeFullName}>(this, gateway,");
-                EmitWrapLambda(sb, i4, model.EventRoute);
-                sb.AppendLine(");");
-            }
-            else if (isCommandOnly)
-            {
-                var rootCmdType = model.CommandRoute[0].ParentTypeFullName;
-                sb.AppendLine($"{indent}_binder = MessageBinding.BindRouted<{rootCmdType}, {model.CommandTypeFullName}>(this, gateway,");
-                EmitUnwrapLambda(sb, i4, model.CommandRoute);
-                sb.AppendLine(");");
+                sb.AppendLine($"{indent}void SendEvent({model.EventTypeFullName} evt) => _gateway.Send(Google.Protobuf.WellKnownTypes.Any.Pack(evt));");
             }
             else
             {
-                var rootCmdType = hasCommandRoute ? model.CommandRoute[0].ParentTypeFullName : model.CommandTypeFullName;
-                var rootEvtType = hasEventRoute ? model.EventRoute[0].ParentTypeFullName : model.EventTypeFullName;
-                sb.AppendLine($"{indent}_binder = MessageBinding.BindRouted<{rootCmdType}, {model.CommandTypeFullName}, {rootEvtType}, {model.EventTypeFullName}>(");
-                sb.AppendLine($"{i4}this, this, gateway,");
-                if (hasCommandRoute)
-                    EmitUnwrapLambda(sb, i4, model.CommandRoute);
-                else
-                    sb.Append($"{i4}root => root");
-                sb.AppendLine(",");
-                if (hasEventRoute)
-                    EmitWrapLambda(sb, i4, model.EventRoute);
-                else
-                    sb.Append($"{i4}inner => inner");
-                sb.AppendLine(");");
+                sb.AppendLine($"{indent}void SendEvent({model.EventTypeFullName} evt)");
+                sb.AppendLine($"{indent}{{");
+                sb.Append($"{i3}var wrapped = ");
+                // Build inline wrap expression (same logic as EmitWrapLambda but inline)
+                for (int i = 0; i < model.EventRoute.Length; i++)
+                {
+                    var seg = model.EventRoute[i];
+                    sb.Append($"new {seg.ParentTypeFullName} {{ {seg.PropertyName} = ");
+                }
+                sb.Append("evt");
+                for (int i = 0; i < model.EventRoute.Length; i++)
+                {
+                    sb.Append(" }");
+                }
+                sb.AppendLine(";");
+                sb.AppendLine($"{i3}_gateway.Send(Google.Protobuf.WellKnownTypes.Any.Pack(wrapped));");
+                sb.AppendLine($"{indent}}}");
             }
         }
 
@@ -363,24 +333,5 @@ namespace ProtoHandlerGen
             }
         }
 
-        /// <summary>
-        /// Event の wrap ラムダを生成する。
-        /// 1段: inner => new AppState { PlayerState = inner }
-        /// 多段: inner => new RootState { Mid = new MidState { Inner = inner } }
-        /// </summary>
-        static void EmitWrapLambda(StringBuilder sb, string indent, ImmutableArray<RouteSegment> route)
-        {
-            sb.Append($"{indent}inner => ");
-            for (int i = 0; i < route.Length; i++)
-            {
-                var seg = route[i];
-                sb.Append($"new {seg.ParentTypeFullName} {{ {seg.PropertyName} = ");
-            }
-            sb.Append("inner");
-            for (int i = 0; i < route.Length; i++)
-            {
-                sb.Append(" }");
-            }
-        }
     }
 }

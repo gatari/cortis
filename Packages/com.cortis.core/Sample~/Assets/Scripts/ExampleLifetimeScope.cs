@@ -1,9 +1,5 @@
-// =============================================================================
-// ExampleLifetimeScope.cs
-// VContainer の LifetimeScope 設定例
-// =============================================================================
-
 using Cortis;
+using Cortis.Sample;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -13,20 +9,16 @@ namespace Example
     public sealed class ExampleLifetimeScope : LifetimeScope
     {
         [SerializeField] Transform target;
+        [SerializeField] Transform sensor;
 
         protected override void Configure(IContainerBuilder builder)
         {
-            // Gateway の登録
             builder.Register<FlutterMessageGateway>(Lifetime.Singleton)
                 .As<IMessageGateway>();
 
-            // Command + Event Presenter の登録
             ExamplePresenter.Register(builder, Lifetime.Singleton);
-
-            // Event-only Presenter の登録
+            ReactivePresenter.Register(builder, Lifetime.Singleton);
             EventOnlyPresenter.Register(builder, Lifetime.Singleton);
-
-            // Routed Presenter の登録（inner 型で登録するが、Gateway は root 型で通信する）
             RoutedPresenter.Register(builder, Lifetime.Singleton);
         }
     }

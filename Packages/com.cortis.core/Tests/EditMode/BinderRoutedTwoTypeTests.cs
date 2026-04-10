@@ -5,10 +5,9 @@ using NUnit.Framework;
 namespace Cortis.Tests.EditMode
 {
     /// <summary>
-    /// MessageBinding.BindRouted&lt;TRootCommand, TCommand, TRootEvent, TEvent&gt; の統合テスト。
-    /// root コマンドに Struct、inner コマンドに StringValue、
-    /// root イベントに Struct、inner イベントに Int32Value を使い、
-    /// unwrap/wrap の両方向を同時に検証する。
+    /// MessageBinding.BindRouted&lt;TRootCommand, TCommand&gt; のテスト。
+    /// Event 自動 Subscribe はなくなったため、Command のルーティングのみをバインドする。
+    /// ユーザーコードがイベント送信（wrap + gateway.Send）を行うパターンを検証する。
     /// </summary>
     public class BinderRoutedTwoTypeTests
     {
@@ -17,7 +16,6 @@ namespace Cortis.Tests.EditMode
 
         TestGateway _gateway;
         RecordingHandler<StringValue> _commandHandler;
-        TestEventSource<Int32Value> _eventSource;
         RecordingHandler<Struct> _eventLoopbackHandler;
         Binder _binder;
         Binder _eventCatcher;
@@ -41,14 +39,14 @@ namespace Cortis.Tests.EditMode
         {
             _gateway = new TestGateway();
             _commandHandler = new RecordingHandler<StringValue>();
-            _eventSource = new TestEventSource<Int32Value>();
             _eventLoopbackHandler = new RecordingHandler<Struct>();
 
             _eventCatcher = MessageBinding.Bind<Struct>(_eventLoopbackHandler, _gateway);
 
-            _binder = MessageBinding.BindRouted<Struct, StringValue, Struct, Int32Value>(
-                _commandHandler, _eventSource, _gateway,
-                UnwrapCommand, WrapEvent);
+            // Command のみルーティング付きバインド
+            _binder = MessageBinding.BindRouted<Struct, StringValue>(
+                _commandHandler, _gateway,
+                UnwrapCommand);
         }
 
         [TearDown]
@@ -56,7 +54,6 @@ namespace Cortis.Tests.EditMode
         {
             _binder.Dispose();
             _eventCatcher.Dispose();
-            _eventSource.Dispose();
             _gateway.Dispose();
         }
 
@@ -72,9 +69,11 @@ namespace Cortis.Tests.EditMode
         }
 
         [Test]
-        public void inner型イベントがwrapされてroot型としてループバックで受信できる()
+        public void ユーザーコードがwrapしてgateway送信するとroot型イベントとしてループバックで受信できる()
         {
-            _eventSource.Emit(new Int32Value { Value = 42 });
+            var inner = new Int32Value { Value = 42 };
+            var wrapped = WrapEvent(inner);
+            _gateway.Send(Any.Pack(wrapped));
 
             Assert.AreEqual(1, _eventLoopbackHandler.Received.Count);
             Assert.IsTrue(_eventLoopbackHandler.Received[0].Fields.ContainsKey(EvtFieldKey));
@@ -92,7 +91,7 @@ namespace Cortis.Tests.EditMode
         }
 
         [Test]
-        public void Dispose後_コマンドもイベントも処理されない()
+        public void Dispose後_コマンドは処理されない()
         {
             _binder.Dispose();
 
@@ -101,13 +100,6 @@ namespace Cortis.Tests.EditMode
             root.Fields[CmdFieldKey] = new Value { StringValue = "after" };
             _gateway.SimulateReceive(Any.Pack(root));
             Assert.AreEqual(0, _commandHandler.Received.Count);
-
-            // イベント: inner 型を emit しても wrap されない
-            // （_eventCatcher は _binder とは無関係に Struct を受信するので、
-            //   _binder 経由のイベント伝搬がないことは loopback 数の増分で検証）
-            var countBefore = _eventLoopbackHandler.Received.Count;
-            _eventSource.Emit(new Int32Value { Value = 99 });
-            Assert.AreEqual(countBefore, _eventLoopbackHandler.Received.Count);
         }
     }
 }

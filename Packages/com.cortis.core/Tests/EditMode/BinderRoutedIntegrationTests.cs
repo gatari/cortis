@@ -11,8 +11,8 @@ namespace Cortis.Tests.EditMode
     /// <summary>
     /// BindRouted + IMessageGateway の結合テスト。
     /// protoc 生成型 (Root.Types.Command/Event, Inner.Types.Command/Event) を使い、
-    /// Any → unwrap → handle、dispatch → wrap → Any の全経路を検証する。
-    /// WellKnownTypes ではなく実際の protoc ネスト構造を使用。
+    /// Any → unwrap → handle の全経路を検証する。
+    /// Event 送信は ユーザーコード (wrap + gateway.Send) パターンで検証。
     /// </summary>
     public class BinderRoutedIntegrationTests
     {
@@ -118,25 +118,22 @@ namespace Cortis.Tests.EditMode
             binder.Dispose();
         }
 
-        // ── Event: Inner.Event → wrap → Any<Root.Event> → ループバック受信 ──
+        // ── Event: ユーザーコードが wrap → gateway.Send → ループバック受信 ──
 
         [Test]
-        public void InnerイベントがwrapされRoot_Eventとしてループバック受信できる()
+        public void InnerイベントをwrapしてgatewayからRoot_Eventとしてループバック受信できる()
         {
-            var source = new TestEventSource<Cortis.Tests.Inner.Types.Event>();
             var loopbackHandler = new RecordingHandler<Cortis.Tests.Root.Types.Event>();
 
             var loopbackReceiver = MessageBinding.Bind<Cortis.Tests.Root.Types.Event>(
                 loopbackHandler, _gateway);
-            var eventBinder = MessageBinding.BindRouted<
-                Cortis.Tests.Root.Types.Event,
-                Cortis.Tests.Inner.Types.Event>(
-                source, _gateway, WrapEvent);
 
-            source.Emit(new Cortis.Tests.Inner.Types.Event
+            var innerEvent = new Cortis.Tests.Inner.Types.Event
             {
                 FooDone = new Cortis.Tests.Inner.Types.Event.Types.FooDone { Result = "ok" }
-            });
+            };
+            var wrapped = WrapEvent(innerEvent);
+            _gateway.Send(Any.Pack(wrapped));
 
             Assert.AreEqual(1, loopbackHandler.Received.Count);
             Assert.AreEqual(
@@ -144,28 +141,23 @@ namespace Cortis.Tests.EditMode
                 loopbackHandler.Received[0].EventCase);
             Assert.AreEqual("ok", loopbackHandler.Received[0].Inner.FooDone.Result);
 
-            eventBinder.Dispose();
             loopbackReceiver.Dispose();
-            source.Dispose();
         }
 
-        // ── Command + Event 双方向 ──
+        // ── Command + ユーザーコード Event 送信 双方向 ──
 
         [Test]
-        public void 双方向ルーティングでコマンド受信とイベント送信が両方動く()
+        public void 双方向でコマンド受信とユーザーコードイベント送信が両方動く()
         {
             var handler = new RecordingHandler<Cortis.Tests.Inner.Types.Command>();
-            var source = new TestEventSource<Cortis.Tests.Inner.Types.Event>();
             var loopbackHandler = new RecordingHandler<Cortis.Tests.Root.Types.Event>();
 
             var loopbackReceiver = MessageBinding.Bind<Cortis.Tests.Root.Types.Event>(
                 loopbackHandler, _gateway);
             var binder = MessageBinding.BindRouted<
                 Cortis.Tests.Root.Types.Command,
-                Cortis.Tests.Inner.Types.Command,
-                Cortis.Tests.Root.Types.Event,
-                Cortis.Tests.Inner.Types.Event>(
-                handler, source, _gateway, UnwrapCommand, WrapEvent);
+                Cortis.Tests.Inner.Types.Command>(
+                handler, _gateway, UnwrapCommand);
 
             // コマンド受信
             var cmd = new Cortis.Tests.Root.Types.Command
@@ -179,17 +171,17 @@ namespace Cortis.Tests.EditMode
             Assert.AreEqual(1, handler.Received.Count);
             Assert.AreEqual(7, handler.Received[0].DoBar.Count);
 
-            // イベント送信 → ループバック受信
-            source.Emit(new Cortis.Tests.Inner.Types.Event
+            // ユーザーコードからイベント送信 → ループバック受信
+            var innerEvent = new Cortis.Tests.Inner.Types.Event
             {
                 FooDone = new Cortis.Tests.Inner.Types.Event.Types.FooDone { Result = "done" }
-            });
+            };
+            _gateway.Send(Any.Pack(WrapEvent(innerEvent)));
             Assert.AreEqual(1, loopbackHandler.Received.Count);
             Assert.AreEqual("done", loopbackHandler.Received[0].Inner.FooDone.Result);
 
             binder.Dispose();
             loopbackReceiver.Dispose();
-            source.Dispose();
         }
 
         [Test]
@@ -319,35 +311,6 @@ namespace Cortis.Tests.EditMode
             Assert.AreEqual("ok", handler.Received[1].DoFoo.Name);
 
             binder.Dispose();
-        }
-
-        [Test]
-        public void BindRouted経由でもDistinctUntilChangedで重複イベントが排除される()
-        {
-            var source = new TestEventSource<Cortis.Tests.Inner.Types.Event>();
-            var loopbackHandler = new RecordingHandler<Cortis.Tests.Root.Types.Event>();
-
-            var loopbackReceiver = MessageBinding.Bind<Cortis.Tests.Root.Types.Event>(
-                loopbackHandler, _gateway);
-            var eventBinder = MessageBinding.BindRouted<
-                Cortis.Tests.Root.Types.Event,
-                Cortis.Tests.Inner.Types.Event>(
-                source, _gateway, WrapEvent);
-
-            var sameEvent = new Cortis.Tests.Inner.Types.Event
-            {
-                FooDone = new Cortis.Tests.Inner.Types.Event.Types.FooDone { Result = "same" }
-            };
-
-            source.Emit(sameEvent);
-            source.Emit(sameEvent);
-            source.Emit(sameEvent);
-
-            Assert.AreEqual(1, loopbackHandler.Received.Count);
-
-            eventBinder.Dispose();
-            loopbackReceiver.Dispose();
-            source.Dispose();
         }
     }
 }

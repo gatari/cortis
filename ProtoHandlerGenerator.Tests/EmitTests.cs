@@ -157,86 +157,6 @@ namespace Test
 public class DispatchEventTests
 {
     [Fact]
-    public void EventCaseごとにDispatchEventが生成される()
-    {
-        var source = @"
-using Cortis;
-using TestProto;
-
-namespace Test
-{
-    [ProtoHandler(typeof(MyCommand), typeof(MyEvent))]
-    public sealed partial class TestPresenter
-    {
-        void HandleSetScale(MyCommand.Types.SetScale cmd) { }
-        void HandleReset(MyCommand.Types.Reset cmd) { }
-        private partial void OnInitialize() { }
-        private partial void OnDispose() { }
-    }
-}";
-        var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
-
-        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
-        Assert.NotNull(generated);
-        Assert.Contains("DispatchEvent(TestProto.MyEvent.Types.ScaleChanged value)", generated);
-        Assert.Contains("_events.OnNext(new TestProto.MyEvent { ScaleChanged = value });", generated);
-    }
-
-    [Fact]
-    public void sealedクラスではprotectedが付かない()
-    {
-        var source = @"
-using Cortis;
-using TestProto;
-
-namespace Test
-{
-    [ProtoHandler(typeof(MyCommand), typeof(MyEvent))]
-    public sealed partial class TestPresenter
-    {
-        void HandleSetScale(MyCommand.Types.SetScale cmd) { }
-        void HandleReset(MyCommand.Types.Reset cmd) { }
-        private partial void OnInitialize() { }
-        private partial void OnDispose() { }
-    }
-}";
-        var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
-
-        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
-        Assert.NotNull(generated);
-        Assert.Contains("void DispatchEvent(", generated);
-        Assert.DoesNotContain("protected void DispatchEvent(", generated);
-    }
-
-    [Fact]
-    public void 非sealedクラスではprotectedが付く()
-    {
-        var source = @"
-using Cortis;
-using TestProto;
-
-namespace Test
-{
-    [ProtoHandler(typeof(MyCommand), typeof(MyEvent))]
-    public partial class TestPresenter
-    {
-        void HandleSetScale(MyCommand.Types.SetScale cmd) { }
-        void HandleReset(MyCommand.Types.Reset cmd) { }
-        private partial void OnInitialize() { }
-        private partial void OnDispose() { }
-    }
-}";
-        var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
-
-        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
-        Assert.NotNull(generated);
-        Assert.Contains("protected void DispatchEvent(", generated);
-    }
-
-    [Fact]
     public void CommandOnlyの場合_DispatchEventが生成されない()
     {
         var source = @"
@@ -262,6 +182,331 @@ namespace Test
         Assert.NotNull(generated);
         Assert.DoesNotContain("DispatchEvent", generated);
         Assert.DoesNotContain("_events", generated);
+    }
+}
+
+public class SendEventTests
+{
+    [Fact]
+    public void CommandとEvent両方の場合_SendEventが生成される()
+    {
+        var source = @"
+using Cortis;
+using TestProto;
+
+namespace Test
+{
+    [ProtoHandler(typeof(MyCommand), typeof(MyEvent))]
+    public sealed partial class TestPresenter
+    {
+        void HandleSetScale(MyCommand.Types.SetScale cmd) { }
+        void HandleReset(MyCommand.Types.Reset cmd) { }
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.Contains("void SendEvent(TestProto.MyEvent evt)", generated);
+        Assert.Contains("_gateway.Send(Google.Protobuf.WellKnownTypes.Any.Pack(evt))", generated);
+    }
+
+    [Fact]
+    public void EventOnlyの場合_SendEventが生成される()
+    {
+        var source = @"
+using Cortis;
+using TestProto;
+
+namespace Test
+{
+    [ProtoHandler(null, typeof(EvtOnly))]
+    public sealed partial class TestPresenter
+    {
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.Contains("void SendEvent(TestProto.EvtOnly evt)", generated);
+        Assert.Contains("_gateway.Send(Google.Protobuf.WellKnownTypes.Any.Pack(evt))", generated);
+    }
+
+    [Fact]
+    public void CommandOnlyの場合_SendEventが生成されない()
+    {
+        var source = @"
+using Cortis;
+using TestProto;
+
+namespace Test
+{
+    [ProtoHandler(typeof(CmdOnly))]
+    public sealed partial class TestPresenter
+    {
+        void HandleFoo(CmdOnly.Types.DoFoo cmd) { }
+        void HandleBar(CmdOnly.Types.DoBar cmd) { }
+        void HandleBaz(CmdOnly.Types.DoBaz cmd) { }
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.DoesNotContain("SendEvent", generated);
+    }
+
+    [Fact]
+    public void ルーティングありの場合_SendEventがwrapして送信する()
+    {
+        var source = @"
+using Cortis;
+using RoutedProto;
+
+namespace Test
+{
+    [ProtoHandler(typeof(PlayerAction), typeof(PlayerState))]
+    public sealed partial class TestPresenter
+    {
+        void HandleAttack(PlayerAction.Types.Attack cmd) { }
+        void HandleDefend(PlayerAction.Types.Defend cmd) { }
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.Contains("void SendEvent(RoutedProto.PlayerState evt)", generated);
+        Assert.Contains("new RoutedProto.AppState { PlayerState = evt }", generated);
+        Assert.Contains("_gateway.Send(Google.Protobuf.WellKnownTypes.Any.Pack(wrapped))", generated);
+    }
+
+    [Fact]
+    public void 三段ネストルーティングの場合_SendEventが多段wrapして送信する()
+    {
+        var source = @"
+using Cortis;
+using TripleProto;
+
+namespace Test
+{
+    [ProtoHandler(typeof(SubFeature.Types.FCommand), typeof(SubFeature.Types.UEvent))]
+    public sealed partial class TestPresenter
+    {
+        void HandleDoAction(SubFeature.Types.FCommand.Types.DoAction cmd) { }
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.RoutedTripleNestedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.Contains("void SendEvent(TripleProto.SubFeature.Types.UEvent evt)", generated);
+        Assert.Contains("new TripleProto.Feature.Types.UEvent { SubFeature = evt }", generated);
+        Assert.Contains("new TripleProto.App.Types.UEvent { Feature =", generated);
+    }
+}
+
+public class GatewayFieldTests
+{
+    [Fact]
+    public void CommandとEvent両方の場合_gatewayフィールドが生成される()
+    {
+        var source = @"
+using Cortis;
+using TestProto;
+
+namespace Test
+{
+    [ProtoHandler(typeof(MyCommand), typeof(MyEvent))]
+    public sealed partial class TestPresenter
+    {
+        void HandleSetScale(MyCommand.Types.SetScale cmd) { }
+        void HandleReset(MyCommand.Types.Reset cmd) { }
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.Contains("IMessageGateway _gateway;", generated);
+    }
+
+    [Fact]
+    public void EventOnlyの場合_gatewayフィールドが生成される()
+    {
+        var source = @"
+using Cortis;
+using TestProto;
+
+namespace Test
+{
+    [ProtoHandler(null, typeof(EvtOnly))]
+    public sealed partial class TestPresenter
+    {
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.Contains("IMessageGateway _gateway;", generated);
+    }
+
+    [Fact]
+    public void CommandOnlyの場合_gatewayフィールドが生成される()
+    {
+        var source = @"
+using Cortis;
+using TestProto;
+
+namespace Test
+{
+    [ProtoHandler(typeof(CmdOnly))]
+    public sealed partial class TestPresenter
+    {
+        void HandleFoo(CmdOnly.Types.DoFoo cmd) { }
+        void HandleBar(CmdOnly.Types.DoBar cmd) { }
+        void HandleBaz(CmdOnly.Types.DoBaz cmd) { }
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.Contains("IMessageGateway _gateway;", generated);
+    }
+}
+
+public class BindingTests
+{
+    [Fact]
+    public void CommandとEvent両方の場合_CommandOnlyのBindが生成される()
+    {
+        var source = @"
+using Cortis;
+using TestProto;
+
+namespace Test
+{
+    [ProtoHandler(typeof(MyCommand), typeof(MyEvent))]
+    public sealed partial class TestPresenter
+    {
+        void HandleSetScale(MyCommand.Types.SetScale cmd) { }
+        void HandleReset(MyCommand.Types.Reset cmd) { }
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.Contains("MessageBinding.Bind<TestProto.MyCommand>(this, gateway)", generated);
+        Assert.Contains("_gateway = gateway;", generated);
+    }
+
+    [Fact]
+    public void EventOnlyの場合_Bindが呼ばれない()
+    {
+        var source = @"
+using Cortis;
+using TestProto;
+
+namespace Test
+{
+    [ProtoHandler(null, typeof(EvtOnly))]
+    public sealed partial class TestPresenter
+    {
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.DoesNotContain("MessageBinding.Bind", generated);
+        Assert.DoesNotContain("MessageBinding.BindRouted", generated);
+        Assert.Contains("_gateway = gateway;", generated);
+    }
+
+    [Fact]
+    public void EventOnlyの場合_binderフィールドが生成されない()
+    {
+        var source = @"
+using Cortis;
+using TestProto;
+
+namespace Test
+{
+    [ProtoHandler(null, typeof(EvtOnly))]
+    public sealed partial class TestPresenter
+    {
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.DoesNotContain("Binder _binder", generated);
+        Assert.DoesNotContain("_binder?.Dispose()", generated);
+    }
+
+    [Fact]
+    public void CommandOnlyの場合_CommandOnlyのBindが生成される()
+    {
+        var source = @"
+using Cortis;
+using TestProto;
+
+namespace Test
+{
+    [ProtoHandler(typeof(CmdOnly))]
+    public sealed partial class TestPresenter
+    {
+        void HandleFoo(CmdOnly.Types.DoFoo cmd) { }
+        void HandleBar(CmdOnly.Types.DoBar cmd) { }
+        void HandleBaz(CmdOnly.Types.DoBaz cmd) { }
+        private partial void OnInitialize() { }
+        private partial void OnDispose() { }
+    }
+}";
+        var result = GeneratorTestHelper.RunGenerator(
+            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+
+        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
+        Assert.NotNull(generated);
+        Assert.Contains("MessageBinding.Bind<TestProto.CmdOnly>(this, gateway)", generated);
     }
 }
 
@@ -292,36 +537,9 @@ namespace Test
         Assert.NotNull(generated);
         Assert.Contains("Register<TestPresenter>(lifetime)", generated);
         Assert.Contains(".As<ICommandHandler<TestProto.MyCommand>>()", generated);
-        Assert.Contains(".As<IEventSource<TestProto.MyEvent>>()", generated);
-    }
-
-    [Fact]
-    public void CommandOnlyの場合_自クラスが登録されIEventSourceがない()
-    {
-        var source = @"
-using Cortis;
-using TestProto;
-
-namespace Test
-{
-    [ProtoHandler(typeof(CmdOnly))]
-    public sealed partial class TestPresenter
-    {
-        void HandleFoo(CmdOnly.Types.DoFoo cmd) { }
-        void HandleBar(CmdOnly.Types.DoBar cmd) { }
-        void HandleBaz(CmdOnly.Types.DoBaz cmd) { }
-        private partial void OnInitialize() { }
-        private partial void OnDispose() { }
-    }
-}";
-        var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
-
-        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
-        Assert.NotNull(generated);
-        Assert.Contains("Register<TestPresenter>(lifetime)", generated);
         Assert.DoesNotContain("IEventSource", generated);
     }
+
 }
 
 public class ExternalOneofCaseTests
@@ -386,7 +604,7 @@ namespace Test
 public class NonOneofEventTests
 {
     [Fact]
-    public void oneofなしEvent型の場合_単一のDispatchEventが生成される()
+    public void oneofなしEvent型でもIEventSourceがインターフェースリストに含まれない()
     {
         var source = @"
 using Cortis;
@@ -407,38 +625,7 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        // 単一のDispatchEvent(TEvent)が生成される
-        Assert.Contains("DispatchEvent(TestProto.SimpleState value)", generated);
-        // パススルー: _events.OnNext(value) のみ
-        Assert.Contains("_events.OnNext(value);", generated);
-        // oneof case別のDispatchEventは生成されない
-        Assert.DoesNotContain("new TestProto.SimpleState {", generated);
-    }
-
-    [Fact]
-    public void oneofなしEvent型でもIEventSourceが実装される()
-    {
-        var source = @"
-using Cortis;
-using TestProto;
-
-namespace Test
-{
-    [ProtoHandler(typeof(SimpleCommand), typeof(SimpleState))]
-    public sealed partial class TestPresenter
-    {
-        void HandleDoAction(SimpleCommand.Types.DoAction cmd) { }
-        private partial void OnInitialize() { }
-        private partial void OnDispose() { }
-    }
-}";
-        var result = GeneratorTestHelper.RunGenerator(
-            Stubs.NonOneofEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
-
-        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
-        Assert.NotNull(generated);
-        Assert.Contains("IEventSource<TestProto.SimpleState>", generated);
-        Assert.Contains("Subject<TestProto.SimpleState> _events", generated);
+        Assert.DoesNotContain("IEventSource", generated);
         Assert.Contains("Register<TestPresenter>(lifetime)", generated);
     }
 }
@@ -472,57 +659,7 @@ namespace Test
     }
 
     [Fact]
-    public void EventOnlyの場合_IEventSourceが実装される()
-    {
-        var source = @"
-using Cortis;
-using TestProto;
-
-namespace Test
-{
-    [ProtoHandler(null, typeof(EvtOnly))]
-    public sealed partial class TestPresenter
-    {
-        private partial void OnInitialize() { }
-        private partial void OnDispose() { }
-    }
-}";
-        var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
-
-        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
-        Assert.NotNull(generated);
-        Assert.Contains("IEventSource<TestProto.EvtOnly>", generated);
-        Assert.Contains("Subject<TestProto.EvtOnly> _events", generated);
-    }
-
-    [Fact]
-    public void EventOnlyの場合_EventCaseごとにDispatchEventが生成される()
-    {
-        var source = @"
-using Cortis;
-using TestProto;
-
-namespace Test
-{
-    [ProtoHandler(null, typeof(EvtOnly))]
-    public sealed partial class TestPresenter
-    {
-        private partial void OnInitialize() { }
-        private partial void OnDispose() { }
-    }
-}";
-        var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
-
-        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
-        Assert.NotNull(generated);
-        Assert.Contains("DispatchEvent(TestProto.EvtOnly.Types.StatusChanged value)", generated);
-        Assert.Contains("DispatchEvent(TestProto.EvtOnly.Types.ProgressUpdated value)", generated);
-    }
-
-    [Fact]
-    public void EventOnlyの場合_RegisterにIEventSourceのみ登録される()
+    public void EventOnlyの場合_RegisterにIInitializableとIDisposableのみ登録される()
     {
         var source = @"
 using Cortis;
@@ -543,12 +680,12 @@ namespace Test
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
         Assert.Contains("Register<TestPresenter>(lifetime)", generated);
-        Assert.Contains(".As<IEventSource<TestProto.EvtOnly>>()", generated);
         Assert.DoesNotContain("ICommandHandler", generated);
+        Assert.DoesNotContain("IEventSource", generated);
     }
 
     [Fact]
-    public void EventOnlyの場合_BindがEventOnlyオーバーロードを使う()
+    public void EventOnlyの場合_Bindが呼ばれずgatewayのみ設定される()
     {
         var source = @"
 using Cortis;
@@ -568,33 +705,10 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        Assert.Contains("MessageBinding.Bind<TestProto.EvtOnly>(this, gateway)", generated);
+        Assert.DoesNotContain("MessageBinding.Bind", generated);
+        Assert.Contains("_gateway = gateway;", generated);
     }
 
-    [Fact]
-    public void EventOnly_oneofなしの場合_単一DispatchEventが生成される()
-    {
-        var source = @"
-using Cortis;
-using TestProto;
-
-namespace Test
-{
-    [ProtoHandler(null, typeof(SimpleEvent))]
-    public sealed partial class TestPresenter
-    {
-        private partial void OnInitialize() { }
-        private partial void OnDispose() { }
-    }
-}";
-        var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyNonOneofMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
-
-        var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
-        Assert.NotNull(generated);
-        Assert.Contains("DispatchEvent(TestProto.SimpleEvent value)", generated);
-        Assert.Contains("_events.OnNext(value);", generated);
-    }
 }
 
 public class RoutedBindingTests
@@ -622,7 +736,7 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        Assert.Contains("MessageBinding.BindRouted<RoutedProto.AppAction, RoutedProto.PlayerAction, RoutedProto.AppState, RoutedProto.PlayerState>", generated);
+        Assert.Contains("MessageBinding.BindRouted<RoutedProto.AppAction, RoutedProto.PlayerAction>", generated);
     }
 
     [Fact]
@@ -652,7 +766,7 @@ namespace Test
     }
 
     [Fact]
-    public void wrapラムダがroot型のオブジェクト初期化子で生成される()
+    public void SendEventにwrapロジックが生成される()
     {
         var source = @"
 using Cortis;
@@ -674,7 +788,7 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        Assert.Contains("inner => new RoutedProto.AppState { PlayerState = inner }", generated);
+        Assert.Contains("new RoutedProto.AppState { PlayerState = evt }", generated);
     }
 
     [Fact]
@@ -701,7 +815,7 @@ namespace Test
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
         Assert.Contains("ICommandHandler<RoutedProto.PlayerAction>", generated);
-        Assert.Contains("IEventSource<RoutedProto.PlayerState>", generated);
+        Assert.DoesNotContain("IEventSource", generated);
         Assert.Contains("Handle(RoutedProto.PlayerAction command)", generated);
     }
 
@@ -728,7 +842,7 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        Assert.Contains("MessageBinding.Bind<RoutedProto.AppAction, RoutedProto.AppState>", generated);
+        Assert.Contains("MessageBinding.Bind<RoutedProto.AppAction>", generated);
         Assert.DoesNotContain("BindRouted", generated);
     }
 
@@ -783,7 +897,6 @@ namespace Test
         Assert.NotNull(generated);
         Assert.Contains("BindRouted", generated);
         Assert.Contains("NestedProto.App.Types.FCommand", generated);
-        Assert.Contains("NestedProto.App.Types.UEvent", generated);
     }
 
     [Fact]
@@ -808,10 +921,9 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        // Root型がApp.Types.FCommand/UEventであること
+        // Root型がApp.Types.FCommandであること
         Assert.Contains("BindRouted", generated);
         Assert.Contains("TripleProto.App.Types.FCommand", generated);
-        Assert.Contains("TripleProto.App.Types.UEvent", generated);
     }
 
     [Fact]
@@ -842,7 +954,7 @@ namespace Test
     }
 
     [Fact]
-    public void 三段ネストのwrapが2ホップのチェーンで生成される()
+    public void 三段ネストのSendEventが2ホップのwrapで生成される()
     {
         var source = @"
 using Cortis;
@@ -863,8 +975,8 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        // SubFeature.UEvent → Feature.UEvent → App.UEvent の2ホップ wrap
-        Assert.Contains("new TripleProto.Feature.Types.UEvent { SubFeature = inner }", generated);
+        // SubFeature.UEvent → Feature.UEvent → App.UEvent の2ホップ wrap in SendEvent
+        Assert.Contains("new TripleProto.Feature.Types.UEvent { SubFeature = evt }", generated);
         Assert.Contains("new TripleProto.App.Types.UEvent { Feature =", generated);
     }
 
@@ -953,7 +1065,7 @@ namespace Test
     }
 
     [Fact]
-    public void EventOnlyでルーティングがある場合_BindRoutedとwrapラムダが生成される()
+    public void EventOnlyでルーティングがある場合_BindRoutedなしでSendEventにwrapが生成される()
     {
         var source = @"
 using Cortis;
@@ -973,12 +1085,16 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        Assert.Contains("MessageBinding.BindRouted<RoutedEvtOnly.RootState, RoutedEvtOnly.InnerState>(this, gateway,", generated);
-        Assert.Contains("inner => new RoutedEvtOnly.RootState { InnerState = inner }", generated);
+        // Event-only: Bind/BindRouted は呼ばれない
+        Assert.DoesNotContain("MessageBinding.Bind", generated);
+        Assert.DoesNotContain("MessageBinding.BindRouted", generated);
+        // SendEvent に wrap ロジックが含まれる
+        Assert.Contains("void SendEvent(RoutedEvtOnly.InnerState evt)", generated);
+        Assert.Contains("new RoutedEvtOnly.RootState { InnerState = evt }", generated);
     }
 
     [Fact]
-    public void Command側のみルーティングありの場合_unwrapが生成されwrapはidentity()
+    public void Command側のみルーティングありの場合_unwrapが生成されSendEventにwrapなし()
     {
         var source = @"
 using Cortis;
@@ -1000,13 +1116,14 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        Assert.Contains("BindRouted<RoutedProto.AppAction, RoutedProto.PlayerAction, RoutedProto.AppState, RoutedProto.AppState>", generated);
+        Assert.Contains("BindRouted<RoutedProto.AppAction, RoutedProto.PlayerAction>", generated);
         Assert.Contains("root => root.ActionCase == RoutedProto.AppAction.ActionOneofCase.PlayerAction ? root.PlayerAction : null", generated);
-        Assert.Contains("inner => inner", generated);
+        // SendEvent は wrap なし (AppState が root なのでルーティング不要)
+        Assert.Contains("void SendEvent(RoutedProto.AppState evt) => _gateway.Send(Google.Protobuf.WellKnownTypes.Any.Pack(evt));", generated);
     }
 
     [Fact]
-    public void Event側のみルーティングありの場合_wrapが生成されunwrapはidentity()
+    public void Event側のみルーティングありの場合_Bindは通常でSendEventにwrapが生成される()
     {
         var source = @"
 using Cortis;
@@ -1028,9 +1145,10 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        Assert.Contains("BindRouted<RoutedProto.AppAction, RoutedProto.AppAction, RoutedProto.AppState, RoutedProto.PlayerState>", generated);
-        Assert.Contains("root => root", generated);
-        Assert.Contains("inner => new RoutedProto.AppState { PlayerState = inner }", generated);
+        // Command は root 型なのでルーティングなし
+        Assert.Contains("MessageBinding.Bind<RoutedProto.AppAction>(this, gateway)", generated);
+        // SendEvent に wrap ロジックがある
+        Assert.Contains("new RoutedProto.AppState { PlayerState = evt }", generated);
     }
 
     [Fact]
@@ -1087,7 +1205,7 @@ namespace Test
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
-        Assert.Contains("BindRouted", generated);
+        // SendEvent に ParentB への wrap が含まれる
         Assert.Contains("ParentB", generated);
     }
 

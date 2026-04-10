@@ -1,12 +1,12 @@
 # Unity
-[Ll]ibrary/
-[Tt]emp/
-[Oo]bj/
-[Bb]uild/
-[Bb]uilds/
-[Ll]ogs/
-[Uu]serSettings/
-[Mm]emoryCaptures/
+**/[Ll]ibrary/
+**/[Tt]emp/
+**/[Oo]bj/
+**/[Bb]uild/
+**/[Bb]uilds/
+**/[Ll]ogs/
+**/[Uu]serSettings/
+**/[Mm]emoryCaptures/
 
 # Unity auto-generated
 /*.csproj
@@ -14,8 +14,8 @@
 /*.unityproj
 
 # NuGet for Unity (restored via NuGet Restore)
-Assets/Packages/
-Assets/Packages.meta
+**/Assets/Packages/
+**/Assets/Packages.meta
 
 # OS
 .DS_Store
