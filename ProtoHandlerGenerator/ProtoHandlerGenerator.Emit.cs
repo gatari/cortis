@@ -122,7 +122,7 @@ namespace ProtoHandlerGen
             var indent = model.Namespace != null ? "    " : "";
 
             // Class declaration with interfaces
-            sb.Append($"{indent}[GeneratedCode(\"ProtoHandlerGenerator\", \"0.1.0\")]");
+            sb.Append($"{indent}[GeneratedCode(\"ProtoHandlerGenerator\", \"1.0.0\")]");
             sb.AppendLine();
             sb.Append($"{indent}partial class {model.ClassName}");
 
