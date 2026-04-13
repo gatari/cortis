@@ -106,7 +106,7 @@ namespace ProtoHandlerGen
             if (model.InfrastructureNamespace != null)
                 sb.AppendLine($"using {model.InfrastructureNamespace};");
             sb.AppendLine("using Cortis;");
-            sb.AppendLine("using R3;");
+            sb.AppendLine("using UniRx;");
             sb.AppendLine("using VContainer;");
             sb.AppendLine("using VContainer.Unity;");
             if (model.Handlers.Any(h => h.IsAsync))

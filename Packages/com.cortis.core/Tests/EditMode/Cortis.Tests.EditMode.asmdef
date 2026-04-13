@@ -3,7 +3,7 @@
     "rootNamespace": "Cortis.Tests.EditMode",
     "references": [
         "Cortis",
-        "R3.Unity",
+        "UniRx",
         "VContainer",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
@@ -16,7 +16,6 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "Google.Protobuf.dll",
-        "R3.dll",
         "nunit.framework.dll"
     ],
     "autoReferenced": false,

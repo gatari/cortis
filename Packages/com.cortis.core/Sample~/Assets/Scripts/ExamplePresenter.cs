@@ -1,6 +1,7 @@
+using System;
 using Cortis;
 using Cortis.Sample;
-using R3;
+using UniRx;
 using UnityEngine;
 
 namespace Example
@@ -13,7 +14,7 @@ namespace Example
     {
         readonly Transform _target;
         readonly Subject<Cube.Types.Event> _events = new();
-        public Observable<Cube.Types.Event> Events => _events;
+        public IObservable<Cube.Types.Event> Events => _events;
 
         public ExamplePresenter(Transform target)
         {
@@ -66,7 +67,7 @@ namespace Example
     public sealed partial class ReactivePresenter
     {
         readonly ReactiveProperty<Cube.Types.Event> _state = new();
-        public Observable<Cube.Types.Event> Events => _state;
+        public IObservable<Cube.Types.Event> Events => _state;
 
         void HandleSetScale(Cube.Types.Command.Types.SetScale cmd)
         {

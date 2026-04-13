@@ -1,7 +1,8 @@
+using System;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NUnit.Framework;
-using R3;
+using UniRx;
 using UnityEngine;
 
 namespace Cortis.Tests.EditMode
