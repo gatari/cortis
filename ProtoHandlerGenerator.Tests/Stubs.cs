@@ -49,13 +49,13 @@ namespace VContainer.Unity
 }
 ";
 
-    public const string R3Stubs = @"
+    public const string UniRxStubs = @"
 using System;
-namespace R3
+namespace UniRx
 {
-    public abstract class Observable<T> { }
-    public class Subject<T> : Observable<T>, IDisposable
+    public class Subject<T> : IObservable<T>, IDisposable
     {
+        public IDisposable Subscribe(IObserver<T> observer) => null;
         public void OnNext(T value) { }
         public void Dispose() { }
     }

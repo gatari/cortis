@@ -1,7 +1,7 @@
 using System;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using R3;
+using UniRx;
 using UnityEngine;
 
 namespace Example
@@ -14,7 +14,7 @@ namespace Example
     {
         readonly Subject<Any> _messages = new();
 
-        public Observable<Any> Messages => _messages;
+        public IObservable<Any> Messages => _messages;
 
         public void Send(Any packed)
         {

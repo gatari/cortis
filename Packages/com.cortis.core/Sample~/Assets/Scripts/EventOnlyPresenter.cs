@@ -1,6 +1,6 @@
 using Cortis;
 using Cortis.Sample;
-using R3;
+using UniRx;
 using UnityEngine;
 
 namespace Example
@@ -11,7 +11,7 @@ namespace Example
     {
         readonly Transform _sensor;
         readonly Subject<Sensor.Types.Event> _events = new();
-        public Observable<Sensor.Types.Event> Events => _events;
+        public IObservable<Sensor.Types.Event> Events => _events;
 
         public EventOnlyPresenter(Transform sensor)
         {

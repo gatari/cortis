@@ -24,7 +24,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO001");
         Assert.Empty(diagnostics);
@@ -49,7 +49,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO001");
         Assert.Single(diagnostics);
@@ -76,7 +76,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO001");
         Assert.Equal(2, diagnostics.Length);
@@ -100,7 +100,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO001");
         Assert.All(diagnostics, d => Assert.Equal(DiagnosticSeverity.Error, d.Severity));
@@ -128,7 +128,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO002");
         Assert.Empty(diagnostics);
@@ -154,7 +154,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO002");
         Assert.Single(diagnostics);
@@ -182,7 +182,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO002");
         Assert.Single(diagnostics);
@@ -209,7 +209,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO002");
         Assert.Empty(diagnostics);
@@ -236,7 +236,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO003");
         Assert.Single(diagnostics);
@@ -260,7 +260,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO003");
         Assert.Empty(diagnostics);
@@ -284,7 +284,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO003");
         Assert.Single(diagnostics);
@@ -311,7 +311,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO004");
         Assert.Single(diagnostics);
@@ -337,7 +337,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO004");
         Assert.Empty(diagnostics);

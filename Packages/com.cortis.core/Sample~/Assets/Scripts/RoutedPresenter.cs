@@ -1,6 +1,6 @@
 using Cortis;
 using Cortis.Sample;
-using R3;
+using UniRx;
 using UnityEngine;
 
 namespace Example
@@ -11,7 +11,7 @@ namespace Example
     {
         int _hp = 100;
         readonly Subject<Player.Types.Event> _events = new();
-        public Observable<Player.Types.Event> Events => _events;
+        public IObservable<Player.Types.Event> Events => _events;
 
         void HandleAttack(Player.Types.Command.Types.Attack cmd)
         {

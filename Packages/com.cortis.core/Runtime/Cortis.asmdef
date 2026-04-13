@@ -2,7 +2,7 @@
     "name": "Cortis",
     "rootNamespace": "Cortis",
     "references": [
-        "R3.Unity",
+        "UniRx",
         "VContainer"
     ],
     "includePlatforms": [],
@@ -10,8 +10,7 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "Google.Protobuf.dll",
-        "R3.dll"
+        "Google.Protobuf.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

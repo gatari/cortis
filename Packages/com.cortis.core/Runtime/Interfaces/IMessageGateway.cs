@@ -1,11 +1,12 @@
+using System;
 using Google.Protobuf.WellKnownTypes;
-using R3;
+using UniRx;
 
 namespace Cortis
 {
     public interface IMessageGateway
     {
-        Observable<Any> Messages { get; }
+        IObservable<Any> Messages { get; }
         void Send(Any packed);
     }
 }

@@ -23,7 +23,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -54,7 +54,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs,
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs,
             Stubs.UniTaskStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
@@ -84,7 +84,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs,
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs,
             Stubs.UniTaskStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
@@ -111,7 +111,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -142,7 +142,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -176,7 +176,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -206,7 +206,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -231,7 +231,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -259,7 +259,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -285,7 +285,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -312,7 +312,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedTripleNestedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedTripleNestedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -343,7 +343,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -367,7 +367,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -394,7 +394,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -423,7 +423,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -448,7 +448,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -474,7 +474,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -502,7 +502,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -531,7 +531,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -563,7 +563,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.ExternalOneofCaseMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.ExternalOneofCaseMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -592,7 +592,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.ExternalOneofCaseMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.ExternalOneofCaseMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO001");
         Assert.Single(diagnostics);
@@ -621,7 +621,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.NonOneofEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.NonOneofEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -649,7 +649,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -675,7 +675,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -701,7 +701,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.EventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -732,7 +732,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -758,7 +758,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -784,7 +784,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -810,7 +810,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -838,7 +838,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -864,7 +864,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedCommandOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedCommandOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -891,7 +891,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedNestedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedNestedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -917,7 +917,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedTripleNestedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedTripleNestedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -944,7 +944,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedTripleNestedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedTripleNestedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -971,7 +971,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedTripleNestedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedTripleNestedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -998,7 +998,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.AmbiguousRoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.AmbiguousRoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO005");
         Assert.Single(diagnostics);
@@ -1027,7 +1027,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.AmbiguousRoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.AmbiguousRoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO005");
         Assert.Empty(diagnostics);
@@ -1057,7 +1057,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.AmbiguousRoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.AmbiguousRoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO006");
         Assert.Single(diagnostics);
@@ -1081,7 +1081,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedEventOnlyMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedEventOnlyMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -1112,7 +1112,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -1141,7 +1141,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -1169,7 +1169,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.AmbiguousEventRoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.AmbiguousEventRoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO005");
         Assert.Single(diagnostics);
@@ -1198,7 +1198,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.AmbiguousEventRoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.AmbiguousEventRoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO005");
         Assert.Empty(diagnostics);
@@ -1228,7 +1228,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.AmbiguousMidLayerMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.AmbiguousMidLayerMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO005");
         Assert.Empty(diagnostics);
@@ -1258,7 +1258,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.AmbiguousMidLayerMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.AmbiguousMidLayerMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics = GeneratorTestHelper.GetDiagnostics(result, "PROTO005");
         Assert.Single(diagnostics);
@@ -1288,7 +1288,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.RoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var diagnostics005 = GeneratorTestHelper.GetDiagnostics(result, "PROTO005");
         var diagnostics006 = GeneratorTestHelper.GetDiagnostics(result, "PROTO006");
@@ -1319,7 +1319,7 @@ namespace Test
 }";
         // Should not hang or throw
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CircularRoutedMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CircularRoutedMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -1347,7 +1347,7 @@ namespace Test
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);
@@ -1373,7 +1373,7 @@ namespace My.Custom.Namespace
     }
 }";
         var result = GeneratorTestHelper.RunGenerator(
-            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.R3Stubs, source);
+            Stubs.CommandAndEventMessage, Stubs.VContainerStubs, Stubs.UniRxStubs, source);
 
         var generated = GeneratorTestHelper.GetGeneratedSource(result, "TestPresenter.g.cs");
         Assert.NotNull(generated);

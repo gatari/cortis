@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using R3;
+using UniRx;
 using UnityEngine;
 
 namespace Cortis.Tests.EditMode
@@ -39,7 +39,7 @@ namespace Cortis.Tests.EditMode
 
         public bool SimulateError { get; set; }
 
-        public Observable<Any> Messages => _subject;
+        public IObservable<Any> Messages => _subject;
 
         public void Send(Any packed)
         {
