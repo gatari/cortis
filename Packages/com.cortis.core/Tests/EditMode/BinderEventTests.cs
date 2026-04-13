@@ -1,3 +1,4 @@
+using System;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NUnit.Framework;
