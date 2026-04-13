@@ -4,9 +4,7 @@
     "displayName": "Cortis",
     "description": "Type-safe protobuf communication framework for Unity. Provides Binder pattern for command/event handling over MessageGateway.",
     "unity": "6000.0",
-    "dependencies": {
-        "com.neuecc.unirx": "7.1.0"
-    },
+    "dependencies": {},
     "keywords": [
         "unity",
         "protobuf",
